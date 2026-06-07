@@ -85,7 +85,7 @@ streamlit run app.py
 * Cloud deployment with Streamlit Cloud
 
 ## 👨‍💻 Author
-Priyansu pal
-Swati Rani Bhanja
-Himani Dash
-Somesh Ranjan Nayak
+1) Priyansu pal
+2) Swati Rani Bhanja
+3)Himani Dash
+4)Somesh Ranjan Nayak
