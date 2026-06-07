@@ -84,8 +84,9 @@ streamlit run app.py
 * Enhanced UI/UX
 * Cloud deployment with Streamlit Cloud
 
-## 👨‍💻 Author
-1) Priyansu pal
-2) Swati Rani Bhanja
-3)Himani Dash
-4)Somesh Ranjan Nayak
+## 👨‍💻 Authors
+
+- Priyansu Pal
+- Swati Rani Bhanja
+- Somesh Ranjan Nayak
+- Himani Dash
