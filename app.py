@@ -1,9 +1,9 @@
 import streamlit as st
-import cv2
+#import cv2
 import mediapipe as mp
 import numpy as np
 import joblib
-import pyttsx3
+#import pyttsx3
 
 st.set_page_config(
     page_title="ASL Recognition System",
@@ -200,83 +200,84 @@ st.markdown("""
 # ======================
 # CAMERA
 # ======================
-FRAME_WINDOW = st.empty()
+# FRAME_WINDOW = st.empty()
 
-if run:
+# if run:
 
-    mp_hands = mp.solutions.hands
-    mp_draw = mp.solutions.drawing_utils
+#     mp_hands = mp.solutions.hands
+#     mp_draw = mp.solutions.drawing_utils
 
-    hands = mp_hands.Hands(
-        static_image_mode=False,
-        max_num_hands=1,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5
-    )
+#     hands = mp_hands.Hands(
+#         static_image_mode=False,
+#         max_num_hands=1,
+#         min_detection_confidence=0.5,
+#         min_tracking_confidence=0.5
+#     )
 
-    cap = cv2.VideoCapture(0)
+#     cap = cv2.VideoCapture(0)
 
-    while run:
+#     while run:
 
-        success, frame = cap.read()
+#         success, frame = cap.read()
 
-        if not success:
-            st.error("Camera not found")
-            break
+#         if not success:
+#             st.error("Camera not found")
+#             break
 
-        frame = cv2.flip(frame, 1)
+#         frame = cv2.flip(frame, 1)
 
-        rgb = cv2.cvtColor(
-            frame,
-            cv2.COLOR_BGR2RGB
-        )
+#         rgb = cv2.cvtColor(
+#             frame,
+#             cv2.COLOR_BGR2RGB
+#         )
 
-        results = hands.process(rgb)
+#         results = hands.process(rgb)
 
-        letter = ""
+#         letter = ""
 
-        if results.multi_hand_landmarks:
+#         if results.multi_hand_landmarks:
 
-            for hand_landmarks in results.multi_hand_landmarks:
+#             for hand_landmarks in results.multi_hand_landmarks:
 
-                features = []
+#                 features = []
 
-                for lm in hand_landmarks.landmark:
-                    features.extend([
-                        lm.x,
-                        lm.y,
-                        lm.z
-                    ])
+#                 for lm in hand_landmarks.landmark:
+#                     features.extend([
+#                         lm.x,
+#                         lm.y,
+#                         lm.z
+#                     ])
 
-                features = np.array(
-                    features
-                ).reshape(1, -1)
+#                 features = np.array(
+#                     features
+#                 ).reshape(1, -1)
 
-                pred = model.predict(features)
+#                 pred = model.predict(features)
 
-                letter = encoder.inverse_transform(pred)[0]
+#                 letter = encoder.inverse_transform(pred)[0]
 
-                st.session_state.current_letter = letter
+#                 st.session_state.current_letter = letter
 
-                mp_draw.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS
-                )
+#                 mp_draw.draw_landmarks(
+#                     frame,
+#                     hand_landmarks,
+#                     mp_hands.HAND_CONNECTIONS
+#                 )
 
-        cv2.putText(
-            frame,
-            f"Letter: {letter}",
-            (20, 50),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (0, 255, 0),
-            2
-        )
+#         cv2.putText(
+#             frame,
+#             f"Letter: {letter}",
+#             (20, 50),
+#             cv2.FONT_HERSHEY_SIMPLEX,
+#             1,
+#             (0, 255, 0),
+#             2
+#         )
 
-        FRAME_WINDOW.image(
-            cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
-            use_container_width=True
-        )
+#         FRAME_WINDOW.image(
+#             cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+#             use_container_width=True
+#         )
 
-    cap.release()
+#     cap.release()
+st.info("Cloud deployment version. Webcam features are available only in the local version.")
