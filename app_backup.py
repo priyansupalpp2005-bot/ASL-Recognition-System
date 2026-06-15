@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 import av
 #import cv2
 #import mediapipe as mp
@@ -203,19 +203,17 @@ st.markdown("""
 # CAMERA
 # ======================
 class VideoProcessor(VideoProcessorBase):
-
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
-
 if run:
     webrtc_streamer(
-        key="asl-camera",
+        key="camera",
         video_processor_factory=VideoProcessor,
         media_stream_constraints={
             "video": True,
             "audio": False,
         },
+        async_processing=True,
     )
-st.info("🌐 Cloud deployment version. Webcam recognition is available in the desktop version.")
