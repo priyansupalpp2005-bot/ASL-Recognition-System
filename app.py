@@ -1,6 +1,6 @@
 import streamlit as st
 #import cv2
-import mediapipe as mp
+#import mediapipe as mp
 import numpy as np
 import joblib
 #import pyttsx3
@@ -280,4 +280,4 @@ st.markdown("""
 #         )
 
 #     cap.release()
-st.info("Cloud deployment version. Webcam features are available only in the local version.")
+st.info("🌐 Cloud deployment version. Webcam recognition is available in the desktop version.")
