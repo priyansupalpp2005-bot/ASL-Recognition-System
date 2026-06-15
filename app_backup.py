@@ -208,6 +208,8 @@ class VideoProcessor(VideoProcessorBase):
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 if run:
+    st.success("WebRTC section reached")
+
     webrtc_streamer(
         key="camera",
         video_processor_factory=VideoProcessor,
