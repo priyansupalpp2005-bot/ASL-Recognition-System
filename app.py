@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import av
 #import cv2
 #import mediapipe as mp
@@ -202,41 +202,84 @@ st.markdown("""
 # ======================
 # CAMERA
 # ======================
-class VideoProcessor(VideoProcessorBase):
+# FRAME_WINDOW = st.empty()
 
-    def __init__(self):
-        self.hands = mp.solutions.hands.Hands(
-            static_image_mode=False,
-            max_num_hands=1,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
-        )
+# if run:
 
-        self.mp_draw = mp.solutions.drawing_utils
-        self.mp_hands = mp.solutions.hands
+#     mp_hands = mp.solutions.hands
+#     mp_draw = mp.solutions.drawing_utils
 
-    def recv(self, frame):
+#     hands = mp_hands.Hands(
+#         static_image_mode=False,
+#         max_num_hands=1,
+#         min_detection_confidence=0.5,
+#         min_tracking_confidence=0.5
+#     )
 
-        img = frame.to_ndarray(format="bgr24")
+#     cap = cv2.VideoCapture(0)
 
-        rgb = cv2.cvtColor(
-            img,
-            cv2.COLOR_BGR2RGB
-        )
+#     while run:
 
-        results = self.hands.process(rgb)
+#         success, frame = cap.read()
 
-        if results.multi_hand_landmarks:
+#         if not success:
+#             st.error("Camera not found")
+#             break
 
-            for hand_landmarks in results.multi_hand_landmarks:
+#         frame = cv2.flip(frame, 1)
 
-                self.mp_draw.draw_landmarks(
-                    img,
-                    hand_landmarks,
-                    self.mp_hands.HAND_CONNECTIONS
-                )
+#         rgb = cv2.cvtColor(
+#             frame,
+#             cv2.COLOR_BGR2RGB
+#         )
 
-        return av.VideoFrame.from_ndarray(
-            img,
-            format="bgr24"
-        )
+#         results = hands.process(rgb)
+
+#         letter = ""
+
+#         if results.multi_hand_landmarks:
+
+#             for hand_landmarks in results.multi_hand_landmarks:
+
+#                 features = []
+
+#                 for lm in hand_landmarks.landmark:
+#                     features.extend([
+#                         lm.x,
+#                         lm.y,
+#                         lm.z
+#                     ])
+
+#                 features = np.array(
+#                     features
+#                 ).reshape(1, -1)
+
+#                 pred = model.predict(features)
+
+#                 letter = encoder.inverse_transform(pred)[0]
+
+#                 st.session_state.current_letter = letter
+
+#                 mp_draw.draw_landmarks(
+#                     frame,
+#                     hand_landmarks,
+#                     mp_hands.HAND_CONNECTIONS
+#                 )
+
+#         cv2.putText(
+#             frame,
+#             f"Letter: {letter}",
+#             (20, 50),
+#             cv2.FONT_HERSHEY_SIMPLEX,
+#             1,
+#             (0, 255, 0),
+#             2
+#         )
+
+#         FRAME_WINDOW.image(
+#             cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
+#             use_container_width=True
+#         )
+
+#     cap.release()
+st.info("🌐 Cloud deployment version. Webcam recognition is available in the desktop version.")
