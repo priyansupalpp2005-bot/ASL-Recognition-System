@@ -1,10 +1,10 @@
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import av
+import cv2
 import mediapipe as mp
 import numpy as np
 import joblib
-from PIL import Image, ImageDraw, ImageFont
 
 st.set_page_config(
     page_title="ASL Recognition System",
@@ -29,7 +29,15 @@ model, encoder = load_model()
 
 
 def speak(text):
-    st.warning("Text-to-speech is only available locally. Browser deployment may not support pyttsx3.")
+    try:
+        import pyttsx3
+
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
+        engine.stop()
+    except Exception:
+        st.warning("Text-to-speech not available (pyttsx3 missing or failed).")
 
 # ======================
 # SESSION STATE
@@ -217,7 +225,7 @@ class VideoProcessor(VideoTransformerBase):
     def recv(self, frame):
 
         img = frame.to_ndarray(format="bgr24")
-        rgb = img[:, :, ::-1]
+        rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         results = self.hands.process(rgb)
 
         # reset predicted for this frame
@@ -257,15 +265,19 @@ class VideoProcessor(VideoTransformerBase):
                     self.mp_hands.HAND_CONNECTIONS
                 )
 
-        rgb_img = img[:, :, ::-1]
-        pil_img = Image.fromarray(rgb_img)
-        draw = ImageDraw.Draw(pil_img)
-        font = ImageFont.load_default()
-        draw.text((20, 50), f"Letter: {self.predicted_letter}", fill=(0, 255, 0), font=font)
+        cv2.putText(
+            img,
+            f"Letter: {self.predicted_letter}",
+            (20, 50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            2,
+        )
 
         return av.VideoFrame.from_ndarray(
-            np.array(pil_img),
-            format="rgb24"
+            img,
+            format="bgr24",
         )
 
 
