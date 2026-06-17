@@ -1,10 +1,24 @@
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import av
-import cv2
-import mediapipe as mp
 import numpy as np
 import joblib
+from PIL import Image, ImageDraw, ImageFont
+
+# Lazy imports for optional local-only features
+CV2_AVAILABLE = False
+MEDIAPIPE_AVAILABLE = False
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except Exception:
+    cv2 = None
+
+try:
+    import mediapipe as mp
+    MEDIAPIPE_AVAILABLE = True
+except Exception:
+    mp = None
 
 st.set_page_config(
     page_title="ASL Recognition System",
@@ -211,22 +225,31 @@ st.markdown("""
 class VideoProcessor(VideoTransformerBase):
 
     def __init__(self):
-        self.mp_hands = mp.solutions.hands
-        self.mp_draw = mp.solutions.drawing_utils
+        # Initialize MediaPipe hands only if available (local)
+        if MEDIAPIPE_AVAILABLE and CV2_AVAILABLE:
+            self.mp_hands = mp.solutions.hands
+            self.mp_draw = mp.solutions.drawing_utils
 
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=False,
-            max_num_hands=1,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
-        )
+            self.hands = self.mp_hands.Hands(
+                static_image_mode=False,
+                max_num_hands=1,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5,
+            )
+        else:
+            self.hands = None
+
         self.predicted_letter = ""
 
     def recv(self, frame):
 
         img = frame.to_ndarray(format="bgr24")
-        rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(rgb)
+        # If MediaPipe is available (local), run detection; otherwise skip
+        if self.hands is not None:
+            rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            results = self.hands.process(rgb)
+        else:
+            results = None
 
         # reset predicted for this frame
         self.predicted_letter = ""
@@ -265,20 +288,30 @@ class VideoProcessor(VideoTransformerBase):
                     self.mp_hands.HAND_CONNECTIONS
                 )
 
-        cv2.putText(
-            img,
-            f"Letter: {self.predicted_letter}",
-            (20, 50),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (0, 255, 0),
-            2,
-        )
+        # Overlay prediction text. Prefer OpenCV if available, else use PIL.
+        label_text = f"Letter: {self.predicted_letter if self.predicted_letter else '_'}"
+        if CV2_AVAILABLE:
+            cv2.putText(
+                img,
+                label_text,
+                (20, 50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 255, 0),
+                2,
+            )
+            out_frame = img
+            out_fmt = "bgr24"
+        else:
+            rgb_img = img[:, :, ::-1]
+            pil_img = Image.fromarray(rgb_img)
+            draw = ImageDraw.Draw(pil_img)
+            font = ImageFont.load_default()
+            draw.text((20, 50), label_text, fill=(0, 255, 0), font=font)
+            out_frame = np.array(pil_img)[:, :, ::-1]
+            out_fmt = "bgr24"
 
-        return av.VideoFrame.from_ndarray(
-            img,
-            format="bgr24",
-        )
+        return av.VideoFrame.from_ndarray(out_frame, format=out_fmt)
 
 
 if run:
