@@ -30,12 +30,7 @@ model, encoder = load_model()
 
 
 def speak(text):
-    import pyttsx3
-
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
-    engine.stop()
+    st.warning("Text-to-speech is only available locally. Browser deployment may not support pyttsx3.")
 
 # ======================
 # SESSION STATE
@@ -206,7 +201,7 @@ st.markdown("""
 # CAMERA + PREDICTION
 # ======================
 
-class VideoProcessor(VideoProcessorBase):
+class VideoProcessor(VideoTransformerBase):
 
     def __init__(self):
         self.mp_hands = mp.solutions.hands
@@ -218,6 +213,7 @@ class VideoProcessor(VideoProcessorBase):
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5
         )
+        self.predicted_letter = ""
 
     def recv(self, frame):
 
@@ -230,7 +226,8 @@ class VideoProcessor(VideoProcessorBase):
 
         results = self.hands.process(rgb)
 
-        predicted_letter = ""
+        # reset predicted for this frame
+        self.predicted_letter = ""
 
         if results.multi_hand_landmarks:
 
@@ -251,11 +248,9 @@ class VideoProcessor(VideoProcessorBase):
                         features
                     ).reshape(1, -1)
 
-                    prediction = model.predict(
-                        features
-                    )
+                    prediction = model.predict(features)
 
-                    predicted_letter = encoder.inverse_transform(
+                    self.predicted_letter = encoder.inverse_transform(
                         prediction
                     )[0]
 
@@ -270,7 +265,7 @@ class VideoProcessor(VideoProcessorBase):
 
         cv2.putText(
             img,
-            f"Letter: {predicted_letter}",
+            f"Letter: {self.predicted_letter}",
             (20, 50),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
@@ -285,12 +280,36 @@ class VideoProcessor(VideoProcessorBase):
 
 
 if run:
-    webrtc_streamer(
+    ctx = webrtc_streamer(
         key="asl-camera",
-        video_processor_factory=VideoProcessor,
+        video_transformer_factory=VideoProcessor,
         media_stream_constraints={
             "video": True,
             "audio": False,
         },
         async_processing=True,
     )
+
+    # Safely retrieve the active transformer instance and copy latest prediction
+    def _get_transformer(c):
+        if not c:
+            return None
+        # common attribute names across versions
+        for name in ("video_transformer", "video_processor", "video_transformer_instance", "video_processor_instance"):
+            obj = getattr(c, name, None)
+            if obj:
+                return obj
+        # some versions expose transformer under state
+        state = getattr(c, "state", None)
+        if state:
+            for name in ("video_transformer", "video_processor"):
+                obj = getattr(state, name, None)
+                if obj:
+                    return obj
+        return None
+
+    transformer = _get_transformer(ctx)
+    if transformer and hasattr(transformer, "predicted_letter"):
+        pred = transformer.predicted_letter
+        if pred:
+            st.session_state.current_letter = pred
