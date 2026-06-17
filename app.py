@@ -319,10 +319,10 @@ if run:
         key="asl-camera",
         video_transformer_factory=VideoProcessor,
         media_stream_constraints={
-            "video": True,
+            "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
             "audio": False,
         },
-        async_processing=True,
+        async_processing=False,
     )
 
     # Safely retrieve the active transformer instance and copy latest prediction
@@ -348,3 +348,9 @@ if run:
         pred = transformer.predicted_letter
         if pred:
             st.session_state.current_letter = pred
+
+    # If the video feed stops for remote users, provide a quick restart control
+    with st.expander("Stream controls"):
+        st.write("If the camera feed stops, click restart to reinitialize the stream.")
+        if st.button("🔁 Restart Stream"):
+            st.experimental_rerun()
