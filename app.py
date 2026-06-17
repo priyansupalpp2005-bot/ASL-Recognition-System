@@ -1,11 +1,10 @@
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import av
-import cv2
 import mediapipe as mp
 import numpy as np
 import joblib
-#import pyttsx3
+from PIL import Image, ImageDraw, ImageFont
 
 st.set_page_config(
     page_title="ASL Recognition System",
@@ -218,12 +217,7 @@ class VideoProcessor(VideoTransformerBase):
     def recv(self, frame):
 
         img = frame.to_ndarray(format="bgr24")
-
-        rgb = cv2.cvtColor(
-            img,
-            cv2.COLOR_BGR2RGB
-        )
-
+        rgb = img[:, :, ::-1]
         results = self.hands.process(rgb)
 
         # reset predicted for this frame
@@ -263,19 +257,15 @@ class VideoProcessor(VideoTransformerBase):
                     self.mp_hands.HAND_CONNECTIONS
                 )
 
-        cv2.putText(
-            img,
-            f"Letter: {self.predicted_letter}",
-            (20, 50),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (0, 255, 0),
-            2
-        )
+        rgb_img = img[:, :, ::-1]
+        pil_img = Image.fromarray(rgb_img)
+        draw = ImageDraw.Draw(pil_img)
+        font = ImageFont.load_default()
+        draw.text((20, 50), f"Letter: {self.predicted_letter}", fill=(0, 255, 0), font=font)
 
         return av.VideoFrame.from_ndarray(
-            img,
-            format="bgr24"
+            np.array(pil_img),
+            format="rgb24"
         )
 
 
