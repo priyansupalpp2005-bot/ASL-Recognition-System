@@ -1,8 +1,8 @@
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
 import av
-import cv2
-import mediapipe as mp
+#import cv2
+#import mediapipe as mp
 import numpy as np
 import joblib
 #import pyttsx3
